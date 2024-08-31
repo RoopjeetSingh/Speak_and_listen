@@ -5,20 +5,17 @@ import os
 from pygame import *
 
 
-def speak(text: str, big_text_test = False):
+def speak(text: str):
+    """
+    Given a text, the computer says the text
+    :param text: The parameter that the user wants the program to speak
+    :return:
+    """
     try:
         tts_ = gTTS(text=text, lang='en')
         ran = random.randint(0, 1000000)
         audio_file = 'audio-' + str(ran) + '.mp3'
         tts_.save(audio_file)
-        # vlc_instance = vlc.Instance()
-        # player = vlc_instance.media_player_new()
-        # media = vlc_instance.media_new("C:///Users/roopa/PycharmProjects/pokemon game/" + audio_file)
-        # player.set_media(media)
-        # player.play()
-        # time.sleep(1.5)
-        # duration = player.get_length() / 1000
-        # time.sleep(duration)
 
         # Starting the mixer
         mixer.init()
@@ -32,12 +29,6 @@ def speak(text: str, big_text_test = False):
         # infinite loop
         while mixer.music.get_busy():
             clock.tick(60)
-            # if big_text_test:
-            #     query = input("e for end (only for testing) ")
-            #     if query == 'e':
-            #         # Stop the mixer
-            #         mixer.music.stop()
-            #         break
         mixer.music.unload()
         os.remove(audio_file)
 
@@ -45,7 +36,12 @@ def speak(text: str, big_text_test = False):
         pass
 
 
-def record_audio(ask: str = None):
+def listen_to_user(ask: str = None):
+    """
+
+    :param ask: This is a question that would be printed before asking the user to speak.
+    :return: The text spoken by the user
+    """
     r = sr.Recognizer()
     r.energy_threshold = 800
     if ask is not None:
@@ -56,10 +52,10 @@ def record_audio(ask: str = None):
         audio = r.listen(source, phrase_time_limit=6)
         music_data = ""
         try:
-            music_data = r.recognize_google(audio)
+            music_data = r.recognize_google_cloud(audio)
             music_data = music_data.lower()
         except sr.UnknownValueError:
-            speak("Sorry, I didn't get that")
+            print("Sorry, I didn't get that")
         except sr.RequestError:
             print('\033[1m' + '\033[91m' +
                   'No internet' + '\033[0m' +
@@ -69,13 +65,18 @@ Checking the network cables, modem, and router
 Reconnecting to Wi-Fi
 Running Windows Network Diagnostics
 ERR_INTERNET_DISCONNECTED''')
-            speak('You are not connected to a WiFi', False)
         return music_data
 
 
-def record_real(ask=None):
+def listen(ask=None):
+    """
+    This function can be used to record an answer to a question. The user could ask to "write"
+    which would stop the program from listening to the user and instead ask for a written answer
+    :param ask: This is a question that would be printed before asking the user to speak.
+    :return: The text spoken by the user
+    """
     while True:
-        voice_data = record_audio(ask)
+        voice_data = listen_to_user(ask)
         if 'write' in voice_data:
             voice_data = input('-> ')
             if voice_data == 'speak':
@@ -83,7 +84,7 @@ def record_real(ask=None):
             else:
                 break
         elif 'right' in voice_data:
-            voice_data_new = record_audio('Did you mean write? (yes/no)')
+            voice_data_new = listen_to_user('Did you mean write? (yes/no)')
             if 'y' in voice_data_new:
                 voice_data = input('-> ')
                 if voice_data == 'speak':
@@ -95,4 +96,3 @@ def record_real(ask=None):
         else:
             break
     return voice_data
-speak('hi, i am speaker')
